@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="mission_fsm" type="jackal_fsm.py" name="mission_fsm" output="screen" required="true"/>
+</launch>
