@@ -73,8 +73,8 @@
   </link>
 
   <joint type="fixed" name="front_realsense_lens_joint">
-    <!-- Offset the camera 10cm forwards and 1cm up -->
-    <origin xyz="0.1 0 0.01" rpy="0 0 0" />
+    <!-- Offset the camera 10cm forwards and 11cm up -->
+    <origin xyz="0.1 0 0.11" rpy="0 0 0" />
     <parent link="front_mount" />
     <child link="front_realsense_lens" />
   </joint>
