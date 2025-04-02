@@ -1,0 +1,8 @@
+<launch>
+    <!-- terrain_analysis -->
+    <include file="$(find terrain_analysis)/launch/terrain_analysis.launch" />
+
+    <!-- local_planner -->
+    <include file="$(find local_planner)/launch/local_planner.launch" />
+    
+</launch>
