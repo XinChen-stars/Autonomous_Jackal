@@ -110,7 +110,8 @@ void odomHandler(const nav_msgs::Odometry::ConstPtr &odomIn) {
     vehicleYaw = yaw;
     vehicleX = odomIn->pose.pose.position.x - cos(yaw) * sensorOffsetX + sin(yaw) * sensorOffsetY;
     vehicleY = odomIn->pose.pose.position.y - sin(yaw) * sensorOffsetX - cos(yaw) * sensorOffsetY;
-    vehicleZ = odomIn->pose.pose.position.z;
+    vehicleZ = 0.0; // odomIn->pose.pose.position.z;
+    // vehicleZ = odomIn->pose.pose.position.z;
 
     if ((fabs(roll) > inclThre * PI / 180.0 || fabs(pitch) > inclThre * PI / 180.0) && useInclToStop) {
         stopInitTime = odomIn->header.stamp.toSec();

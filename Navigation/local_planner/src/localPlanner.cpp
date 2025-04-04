@@ -141,7 +141,9 @@ void odometryHandler(const nav_msgs::Odometry::ConstPtr& odom)
   vehicleYaw = yaw;
   vehicleX = odom->pose.pose.position.x - cos(yaw) * sensorOffsetX + sin(yaw) * sensorOffsetY;
   vehicleY = odom->pose.pose.position.y - sin(yaw) * sensorOffsetX - cos(yaw) * sensorOffsetY;
-  vehicleZ = odom->pose.pose.position.z;
+  vehicleZ = 0.0; // odom->pose.pose.position.z;
+  // vehicleZ = odom->pose.pose.position.z;
+  
 }
 
 tf::TransformListener* tf_listener_;
@@ -322,6 +324,13 @@ void checkObstacleHandler(const std_msgs::Bool::ConstPtr& checkObs)
 
   if (autonomyMode && checkObsTime - joyTime > joyToCheckObstacleDelay) {
     checkObstacle = checkObs->data;
+  }
+}
+
+void BarrelHandler(const std_msgs::Bool::ConstPtr& barrel)
+{
+  if (barrel->data) {
+    obstacleHeightThre = 0.8;
   }
 }
 
@@ -565,6 +574,8 @@ int main(int argc, char** argv)
   ros::Subscriber subGoal = nh.subscribe<geometry_msgs::PointStamped> ("/way_point", 5, goalHandler);
 
   ros::Subscriber sub_rviz_Goal = nh.subscribe<geometry_msgs::PoseStamped> ("/rviz_goal", 5, rviz_goalHandler);
+
+  ros::Subscriber sub_bridge_collidon = nh.subscribe<std_msgs::Bool> ("/bridge_collision", 5, BarrelHandler);
 
   ros::Subscriber subSpeed = nh.subscribe<std_msgs::Float32> ("/speed", 5, speedHandler);
 

@@ -116,7 +116,8 @@ void odometryHandler(const nav_msgs::Odometry::ConstPtr &odom) {
     vehicleYaw = yaw;
     vehicleX = odom->pose.pose.position.x;
     vehicleY = odom->pose.pose.position.y;
-    vehicleZ = odom->pose.pose.position.z;
+    vehicleZ = 0.0; // odom->pose.pose.position.z;
+    // vehicleZ = odom->pose.pose.position.z;
 
     sinVehicleRoll = sin(vehicleRoll);
     cosVehicleRoll = cos(vehicleRoll);
