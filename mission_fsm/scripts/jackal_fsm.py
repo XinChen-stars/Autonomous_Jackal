@@ -10,8 +10,8 @@ fsm = ['INITIALIZING', 'WAITING_FOR_GOAL', 'MOVING_TO_GOAL','WAITING_FOR_BARREL'
 waypoints = [
     [21.5, 0.0, 0.0],
     [21.5, -21.5, 0.0],
-    [19.0, -21.5, 0.0],
-    [19.0, -3.0, 0.0],
+    [19.5, -21.5, 0.0],
+    [19.5, -3.0, 0.0],
     [10.0, -3.0, 0.0],
     [10.0, -21.5, 0.0],
 ]
@@ -24,8 +24,7 @@ class Jackal_FSM():
         self.orientation = None
         self.goal = None
         self.goal_id = 0
-        self.barrel_waypoint_1 = None
-        self.barrel_waypoint_2 = None
+        self.barrel_waypoint = None
         self.state = "INITIALIZING"
         self.recieived_barrel = False
 
@@ -40,16 +39,13 @@ class Jackal_FSM():
             # Check if the waypoint is valid
             rospy.logwarn("Invalid waypoint received")
             return
-        if self.recieived_barrel:
-            # Check if the waypoint is already received
-            rospy.logwarn("Barrel waypoint already received")
-            return
+        # if self.recieived_barrel:
+        #     # Check if the waypoint is already received
+        #     rospy.logwarn("Barrel waypoint already received")
+        #     return
         self.recieived_barrel = True
-        self.barrel_waypoint_1 = data.pose.position
-        self.barrel_waypoint_1.x += 2.5
-        self.barrel_waypoint_2 = data.pose.position
-        self.barrel_waypoint_2.x -= 3.0
-        rospy.loginfo(f"Barrel waypoint received: {self.barrel_waypoint_1}")
+        self.barrel_waypoint = data.pose.position
+        rospy.loginfo(f"Barrel waypoint received: {self.barrel_waypoint}")
 
     def pub_goal(self, goal):
         # Publish the goal to the local planner
@@ -75,11 +71,11 @@ class Jackal_FSM():
         self.open_bridge_pub.publish(open_bridge_msg)
         rospy.loginfo("Open bridge command published")
 
-    def is_reached_goal(self):
+    def is_reached_goal(self,threshold=0.5):
         # Check if the robot has reached the goal
         if self.position is not None and self.goal is not None:
             distance = ((self.position.x - self.goal.position.x) ** 2 + (self.position.y - self.goal.position.y) ** 2) ** 0.5
-            return distance < 0.5
+            return distance < threshold
     
     def select_goal(self,id):
         # Select a goal based on the given ID
@@ -96,7 +92,13 @@ class Jackal_FSM():
         else:
             rospy.logwarn(f"Invalid goal ID: {id}")
             self.goal = None
-
+    
+    def pub_barrel_collision(self):
+        # Publish barrel collision command
+        barrel_collision_msg = Bool()
+        barrel_collision_msg.data = True
+        self.barrel_collision_pub.publish(barrel_collision_msg)
+        rospy.loginfo("Barrel collision command published")
 
     def transition_state(self, new_state):
         # Transition to a new state
@@ -117,6 +119,7 @@ class Jackal_FSM():
         self.goal_point_pub = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=10)
         self.respawn_pub = rospy.Publisher('/rviz_panel/respawn_objects', Int16, queue_size=10) 
         self.open_bridge_pub = rospy.Publisher('/cmd_open_bridge', Bool, queue_size=10)
+        self.barrel_collision_pub = rospy.Publisher('/bridge_collision', Bool, queue_size=10)
         
         # Subscriber for receiving odometry data
         self.odom_sub = rospy.Subscriber('/Odometry', Odometry, self.odom_callback)
@@ -153,11 +156,20 @@ if __name__ == '__main__':
         elif FSM.state == "MOVING_TO_GOAL":
             # Move towards the goal
             # Check if the robot has reached the goal
-            if FSM.is_reached_goal():
+            if FSM.is_reached_goal(0.8):
                 # change the goal
                 FSM.select_goal(FSM.goal_id)
                 FSM.goal_id += 1
                 if FSM.goal_id > len(waypoints):
+                    if FSM.goal is None:
+                        FSM.goal = Pose()
+                        FSM.goal.position.x = 0.0
+                        FSM.goal.position.y = 0.0
+                        FSM.goal.position.z = 0.0
+                        FSM.goal.orientation.x = 0.0
+                        FSM.goal.orientation.y = 0.0
+                        FSM.goal.orientation.z = 0.0
+                        FSM.goal.orientation.w = 1.0
                     FSM.transition_state("WAITING_FOR_BARREL")
                 else:
                     FSM.transition_state("WAITING_FOR_GOAL")
@@ -169,21 +181,22 @@ if __name__ == '__main__':
         elif FSM.state == "WAITING_FOR_BARREL":
             if FSM.recieived_barrel:
                 # Check if the barrel waypoint is received
-                FSM.goal.position.x = FSM.barrel_waypoint_1.x
-                FSM.goal.position.y = FSM.barrel_waypoint_1.y
+                FSM.goal.position.x = FSM.barrel_waypoint.x + 3.0
+                FSM.goal.position.y = FSM.barrel_waypoint.y
                 FSM.goal.position.z = 0.0
                 FSM.pub_goal(FSM.goal)
+                FSM.recieived_barrel = False
                 FSM.transition_state("MOVING_TO_BARREL")
             else:
                 rospy.loginfo("Waiting for barrel waypoint...")
         
         elif FSM.state == "MOVING_TO_BARREL":
             # Move towards the barrel waypoint
-            if FSM.is_reached_goal():
+            if FSM.is_reached_goal(0.3) and FSM.recieived_barrel:
                 # Check if the robot has reached the barrel waypoint
-                FSM.pub_open_bridge()
-                FSM.goal.position.x = FSM.barrel_waypoint_2.x
-                FSM.goal.position.y = FSM.barrel_waypoint_2.y
+                FSM.pub_barrel_collision()
+                FSM.goal.position.x = FSM.barrel_waypoint.x + 1.5
+                FSM.goal.position.y = FSM.barrel_waypoint.y
                 FSM.goal.position.z = 0.0
                 FSM.pub_goal(FSM.goal)
                 FSM.transition_state("PASSING_THE_BRIDGE")
@@ -192,7 +205,12 @@ if __name__ == '__main__':
                 # Continue moving towards the barrel waypoint
 
         elif FSM.state == "PASSING_THE_BRIDGE":
-            if FSM.is_reached_goal():
+            if FSM.is_reached_goal(0.3):
+                FSM.pub_open_bridge()
+                FSM.goal.position.x = FSM.barrel_waypoint.x - 3.5
+                FSM.goal.position.y = FSM.barrel_waypoint.y
+                FSM.goal.position.z = 0.0
+                FSM.pub_goal(FSM.goal)
                 # Check if the robot has reached the barrel waypoint
                 FSM.transition_state("FINISHED")
             
