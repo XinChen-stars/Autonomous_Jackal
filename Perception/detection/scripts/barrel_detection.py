@@ -173,7 +173,7 @@ class Orange:
                             if self.barrel_pose_x is not None and self.barrel_pose_y is not None:
                                 self.pub_barrel_waypoint()
 
-                            rospy.loginfo(f"object:({cx}, {cy}), depth:{depth}")
+                            # rospy.loginfo(f"object:({cx}, {cy}), depth:{depth}")
 
             cv2.imshow("Orange", cv_image)
             cv2.waitKey(1)
