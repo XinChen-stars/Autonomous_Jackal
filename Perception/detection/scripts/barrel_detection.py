@@ -14,34 +14,32 @@ class Orange:
         rospy.init_node("debug_orange", anonymous=True)
         self.bridge = CvBridge()
 
-        # 订阅相机信息
+        # subscribers
         self.camera_info_sub = rospy.Subscriber("/realsense/color/camera_info", CameraInfo, self.camera_info_callback)
-
-        # 订阅深度图像和里程计数据，使用 message_filters 进行同步
         self.odom_sub = message_filters.Subscriber('/Odometry', Odometry)
         self.depth_sub = message_filters.Subscriber("/realsense/depth/image_rect_raw", Image)
 
-        # 使用 ApproximateTimeSynchronizer 进行时间同步
+        # ApproximateTimeSynchronizer 
         self.ts = message_filters.ApproximateTimeSynchronizer([self.odom_sub, self.depth_sub], queue_size=10, slop=0.1)
         self.ts.registerCallback(self.sync_callback)
 
-        # 订阅 RGB 图像
+        # RGB
         self.image_sub = rospy.Subscriber("/realsense/color/image_raw", Image, self.image_callback)
 
-        # 发布目标点
+        # Subscriber for barrel waypoint
         self.barrel_waypoint_pub = rospy.Publisher("/barrel_waypoint", PoseStamped, queue_size=10)
 
-        # 相机内参
+        # camera intrinsic parameters
         self.fx = None
         self.fy = None
         self.cx = None
         self.cy = None
 
-        # 里程计相关变量
+        # odometry
         self.position = None
         self.orientation = None
 
-        # 偏移量
+        # offset
         self.x_offset = 0.2
         self.y_offset = 0.0
         self.z_offset = 0.21
@@ -64,12 +62,12 @@ class Orange:
             rospy.loginfo_once(f"Camera info received: fx={self.fx:.2f}, fy={self.fy:.2f}, cx={self.cx:.1f}, cy={self.cy:.1f}")
 
     def sync_callback(self, odom_msg, depth_msg):
-        """ 时间同步的回调函数 """
-        # 处理里程计信息
+        """ time synchronization callback for odometry and depth image """
+        # process odometry
         self.position = odom_msg.pose.pose.position
         self.orientation = odom_msg.pose.pose.orientation
 
-        # 处理深度图像
+        # process depth image
         try:
             self.latest_depth = self.bridge.imgmsg_to_cv2(depth_msg, desired_encoding="32FC1")
         except Exception as e:
@@ -146,7 +144,7 @@ class Orange:
         self.barrel_pose.pose.position.y = self.barrel_pose_y
         self.barrel_pose.pose.position.z = 0
         self.barrel_waypoint_pub.publish(self.barrel_pose)
-        rospy.loginfo(f"Barrel waypoint published: {self.barrel_pose}")
+        # rospy.loginfo(f"Barrel waypoint published: {self.barrel_pose}")
 
     def image_callback(self, msg):
         try:

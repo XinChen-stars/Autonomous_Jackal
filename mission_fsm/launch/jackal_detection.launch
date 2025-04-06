@@ -2,4 +2,5 @@
     <!-- barrel_detection -->
     <node pkg="detection" type="barrel_detection.py" name="barrel_detection" output="screen" required="true"/>
     <!-- number detection -->
+    <node pkg="detection" type="number_detection.py" name="number_detection" output="screen" required="true"/>
 </launch>
