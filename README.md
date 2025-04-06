@@ -128,6 +128,8 @@ Dependence for Perception:
 * [EasyOCR](https://github.com/JaidedAI/EasyOCR)
   ```bash
   pip install easyocr
+  pip uninstall opencv-python-headless
+  pip install opencv-python
   ```
 
 
