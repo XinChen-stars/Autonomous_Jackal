@@ -18,4 +18,7 @@
     <!-- Load the destination configuration -->
     <rosparam command="load" file="$(find me5413_world)/config/config.yaml" />
 
+    <!-- Launch Rviz with our settings -->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find me5413_world)/rviz/manual.rviz" output="log" respawn="true"/>
+
 </launch>
