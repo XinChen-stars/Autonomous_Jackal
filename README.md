@@ -91,12 +91,12 @@ There are two driver for FAST_LIO:
 
   ```bash
   mkdir -p Autonomous_Jackal_ws/src
-  cd Autonomous_Jackal_ws/src
+  cd Autonomous_Jackal_ws
   git clone https://github.com/XinChen-stars/Autonomous_Jackal.git
-  cd ..
-  mkdir 3rdparty
-  unzip src/3rdparty.zip ../3rdparty
-  cd 3rdparty/Livox-SDK2
+  mv Autonomous_Jackal/* src/
+  rm -rf Autonomous_Jackal/
+  unzip src/3rdparty.zip -d ./  
+  cd 3rdparty/Livox-SDK2/  
   mkdir build
   cd build
   cmake ..
@@ -110,7 +110,7 @@ There are two driver for FAST_LIO:
   cd Autonomous_Jackal_ws/src
   mkdir Mapping
   cd ../
-  cp -r 3rdparty/livox_ros_driver2 src/Mapping/
+  cp -r 3rdparty/livox_ros_driver2/ src/Mapping/  
   cd src/Mapping/livox_ros_driver2
   ./build.sh ROS1
   ```
