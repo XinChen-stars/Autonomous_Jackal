@@ -107,7 +107,9 @@ There are two driver for FAST_LIO:
 * [livox_ros_driver2](https://github.com/Livox-SDK/livox_ros_driver2)
 
   ```bash
-  cd Autonomous_Jackal_ws/
+  cd Autonomous_Jackal_ws/src
+  mkdir Mapping
+  cd ../
   cp -r 3rdparty/livox_ros_driver2 src/Mapping/
   cd src/Mapping/livox_ros_driver2
   ./build.sh ROS1
