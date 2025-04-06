@@ -10,10 +10,12 @@ fsm = ['INITIALIZING', 'WAITING_FOR_GOAL', 'MOVING_TO_GOAL','WAITING_FOR_BARREL'
 waypoints = [
     [21.5, 0.0, 0.0],
     [21.5, -21.5, 0.0],
-    [19.5, -21.5, 0.0],
+    [17.5, -21.5, 0.0],
     [19.5, -3.0, 0.0],
     [10.0, -3.0, 0.0],
     [10.0, -21.5, 0.0],
+    [15.0, -21.5, 0.0],
+    [15.0, -12.0, 0.0],
 ]
 
 
@@ -156,7 +158,7 @@ if __name__ == '__main__':
         elif FSM.state == "MOVING_TO_GOAL":
             # Move towards the goal
             # Check if the robot has reached the goal
-            if FSM.is_reached_goal(0.8):
+            if FSM.is_reached_goal(1.2):
                 # change the goal
                 FSM.select_goal(FSM.goal_id)
                 FSM.goal_id += 1
